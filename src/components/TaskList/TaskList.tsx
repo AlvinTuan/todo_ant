@@ -1,16 +1,16 @@
-import { Todo } from '@/@types/todo.type'
+import { Todo } from '@/types/todo.type'
 import type { CheckboxProps } from 'antd'
-import { Button, Checkbox, Typography } from 'antd'
+import { Button, Card, Checkbox, Typography } from 'antd'
 
 interface TaskListProps {
   todos: Todo[]
-  doneTaskList?: boolean
+  // doneTaskList?: boolean
   handleDoneTodo: (id: string, done: boolean) => void
   startEditTodo: (id: string) => void
   deleteTodo: (id: string) => void
 }
 
-export default function TaskList({ todos, doneTaskList, handleDoneTodo, startEditTodo, deleteTodo }: TaskListProps) {
+export default function TaskList({ todos, handleDoneTodo, startEditTodo, deleteTodo }: TaskListProps) {
   const onChange =
     (id: string): CheckboxProps['onChange'] =>
     (e) => {
@@ -19,24 +19,26 @@ export default function TaskList({ todos, doneTaskList, handleDoneTodo, startEdi
 
   return (
     <div>
-      <Typography.Title level={5}>{doneTaskList ? 'Hoàn thành' : 'Chưa hoàn thành'}</Typography.Title>
+      {/* <Typography.Title level={5}>{doneTaskList ? 'Hoàn thành' : 'Chưa hoàn thành'}</Typography.Title> */}
       <div className='tasks'>
         {todos.map((todo) => (
-          <div key={todo.id} className='flex items-center justify-between [&:not(:last-child)]:mb-2 task'>
-            <Checkbox onChange={onChange(todo.id)} checked={todo.done}>
-              <Typography.Text type={todo.done ? 'secondary' : undefined} delete={todo.done}>
-                {todo.name}
-              </Typography.Text>
-            </Checkbox>
-            <div className='flex items-center justify-between space-x-2'>
-              <Button color='default' variant='filled' onClick={() => startEditTodo(todo.id)}>
-                Edit
-              </Button>
-              <Button color='default' variant='filled' onClick={() => deleteTodo(todo.id)}>
-                🗑️
-              </Button>
+          <Card className='first:mt-4 bg-slate-50' hoverable>
+            <div key={todo.id} className='flex items-center justify-between  [&:not(:last-child)]:mb-2 task'>
+              <Checkbox onChange={onChange(todo.id)} checked={todo.done}>
+                <Typography.Text type={todo.done ? 'secondary' : undefined} delete={todo.done}>
+                  {todo.name}
+                </Typography.Text>
+              </Checkbox>
+              <div className='flex items-center justify-between space-x-2'>
+                <Button color='default' variant='filled' onClick={() => startEditTodo(todo.id)}>
+                  Edit
+                </Button>
+                <Button color='default' variant='filled' onClick={() => deleteTodo(todo.id)}>
+                  🗑️
+                </Button>
+              </div>
             </div>
-          </div>
+          </Card>
         ))}
 
         {/* <div className='flex items-center justify-between [&:not(:last-child)]:mb-2 task'>

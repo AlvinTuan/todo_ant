@@ -1,5 +1,3 @@
-import Header from '@/layouts/Header'
-
 interface Props {
   children: React.ReactNode
 }
@@ -8,8 +6,7 @@ interface Props {
 
 export default function MainLayout({ children }: Props) {
   return (
-    <div>
-      <Header />
+    <div className='min-h-screen'>
       <main className='w-[1200px] max-w-full m-auto p-5'>{children}</main>
       {/* aside */}
     </div>

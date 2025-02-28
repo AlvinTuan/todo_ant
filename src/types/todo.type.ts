@@ -3,3 +3,5 @@ export interface Todo {
   done: boolean
   id: string
 }
+
+export type HandleTodo = (todo: Todo[]) => Todo[]

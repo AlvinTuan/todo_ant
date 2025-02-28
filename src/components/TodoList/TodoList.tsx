@@ -1,24 +1,50 @@
-import { Todo } from '@/@types/todo.type'
 import TaskInput from '@/components/TaskInput'
 import TaskList from '@/components/TaskList'
-import { Card, Typography } from 'antd'
-import { useState } from 'react'
+import { syncReactWithLocal } from '@/lib/utils'
+import { Todo } from '@/types/todo.type'
+import { FileDoneOutlined, FileOutlined } from '@ant-design/icons'
+import { Card, Menu, MenuProps, Typography } from 'antd'
+import { useEffect, useState } from 'react'
+
+type MenuItem = Required<MenuProps>['items'][number]
+
+const items: MenuItem[] = [
+  {
+    label: 'Todo',
+    key: 'todo',
+    icon: <FileOutlined />
+  },
+  {
+    key: 'complete',
+    label: 'Complete',
+    icon: <FileDoneOutlined />
+  }
+]
 
 export default function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([])
   const [currentTodo, setCurrentTodo] = useState<Todo | null>(null)
-
+  const [current, setCurrent] = useState('todo')
   const doneTodos = todos.filter((todo) => todo.done)
   const notDoneTodos = todos.filter((todo) => !todo.done)
 
+  useEffect(() => {
+    const todoFromLocal = JSON.parse(localStorage.getItem('todos') ?? '[]') as Todo[]
+    setTodos(todoFromLocal)
+  }, [])
+
   // Thêm mới
   const addTodo = (name: string) => {
-    const todo: Todo = { name, done: false, id: new Date().toISOString() }
-    setTodos((prevTodos) => [...prevTodos, todo])
+    const todoNew: Todo = { name, done: false, id: new Date().toISOString() }
+    const newTodos = syncReactWithLocal((todoFromLocal: Todo[]) => [...todoFromLocal, todoNew])
+    setTodos(newTodos)
   }
 
   const handleDoneTodo = (id: string, done: boolean) => {
-    setTodos((prevTodos) => prevTodos.map((todo) => (todo.id === id ? { ...todo, done } : todo)))
+    const newTodos = syncReactWithLocal((todoFromLocal) =>
+      todoFromLocal.map((todo) => (todo.id === id ? { ...todo, done } : todo))
+    )
+    setTodos(newTodos)
   }
 
   // edit
@@ -30,46 +56,62 @@ export default function TodoList() {
   }
 
   const finishEditTodo = (name: string) => {
-    setTodos((prevTodos) => prevTodos.map((todo) => (todo.id === currentTodo?.id ? { ...todo, name } : todo)))
+    const newTodos = syncReactWithLocal((todosFromLocal) =>
+      todosFromLocal.map((todo) => {
+        if (todo.id === currentTodo?.id) {
+          return { ...todo, name }
+        }
+        return todo
+      })
+    )
+    setTodos(newTodos)
     setCurrentTodo(null)
   }
 
-  // const cancelEditTodo = () => {}
-
   const deleteTodo = (id: string) => {
-    if (currentTodo) {
+    if (currentTodo?.id === id) {
       setCurrentTodo(null)
     }
-    setTodos((prev) => {
-      const foundIndexTodo = prev.findIndex((todo) => todo.id === id)
-      if (foundIndexTodo > -1) {
-        const res = [...prev]
-        res.splice(foundIndexTodo, 1)
-        return res
-      }
-      return prev
+
+    const newTodos = syncReactWithLocal((todosFromLocal) => {
+      return todosFromLocal.filter((todo) => todo.id !== id)
     })
+
+    setTodos(newTodos)
+  }
+
+  const onClick: MenuProps['onClick'] = (e) => {
+    setCurrent(e.key)
   }
 
   return (
-    <div className='mx-auto max-w-[40rem]'>
-      <Card size='small'>
-        <Typography.Title level={4}>To do list</Typography.Title>
-        <TaskInput currentTodo={currentTodo} addTodo={addTodo} finishEditTodo={finishEditTodo} />
-        <TaskList
-          todos={notDoneTodos}
-          handleDoneTodo={handleDoneTodo}
-          startEditTodo={startEditTodo}
-          deleteTodo={deleteTodo}
-        />
-        <TaskList
-          todos={doneTodos}
-          doneTaskList
-          handleDoneTodo={handleDoneTodo}
-          startEditTodo={startEditTodo}
-          deleteTodo={deleteTodo}
-        />
-      </Card>
-    </div>
+    <>
+      <div className='mx-auto max-w-[40rem]'>
+        <div className='text-center'>
+          <Typography.Title level={3}>My Todos</Typography.Title>
+        </div>
+
+        <Card size='small'>
+          <TaskInput currentTodo={currentTodo} addTodo={addTodo} finishEditTodo={finishEditTodo} />
+          <Menu onClick={onClick} selectedKeys={[current]} mode='horizontal' items={items} />
+          {current === 'todo' && (
+            <TaskList
+              todos={notDoneTodos}
+              handleDoneTodo={handleDoneTodo}
+              startEditTodo={startEditTodo}
+              deleteTodo={deleteTodo}
+            />
+          )}
+          {current === 'complete' && (
+            <TaskList
+              todos={doneTodos}
+              handleDoneTodo={handleDoneTodo}
+              startEditTodo={startEditTodo}
+              deleteTodo={deleteTodo}
+            />
+          )}
+        </Card>
+      </div>
+    </>
   )
 }
