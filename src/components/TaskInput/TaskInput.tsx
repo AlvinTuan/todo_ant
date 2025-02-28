@@ -36,8 +36,13 @@ export default function TaskInput({ addTodo, currentTodo, finishEditTodo }: Task
           }
         ]}
       >
-        <div className='flex space-x-2'>
-          <Form.Item name={'name'} className='flex-1' label='Title'>
+        <div className='flex flex-col space-x-2 md:flex-row'>
+          <Form.Item
+            name={'name'}
+            className='flex-1'
+            label='Title'
+            rules={[{ required: true, message: 'This field cannot be left blank.' }]}
+          >
             <Input width={'100%'} placeholder="What's is the title of your todo? " />
           </Form.Item>
           <Form.Item>
